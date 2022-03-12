@@ -3,6 +3,8 @@ package simpledb.buffer;
 import simpledb.file.*;
 import simpledb.log.LogMgr;
 
+import java.util.Date;
+
 /**
  * An individual buffer. A databuffer wraps a page 
  * and stores information about its status,
@@ -20,6 +22,9 @@ public class Buffer {
    private int pins = 0;
    private int txnum = -1;
    private int lsn = -1;
+
+   private Date loadTime;
+   private Date unpinTime;
 
    public Buffer(FileMgr fm, LogMgr lm) {
       this.fm = fm;
@@ -95,6 +100,15 @@ public class Buffer {
     * Decrease the buffer's pin count.
     */
    void unpin() {
+      this.unpinTime = new Date();
       pins--;
+   }
+
+   public Date getLoadTime() {
+      return this.loadTime;
+   }
+
+   public Date getUnpinTime() {
+      return this.unpinTime;
    }
 }
