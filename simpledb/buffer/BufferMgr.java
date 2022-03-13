@@ -55,6 +55,14 @@ public class BufferMgr {
          if (buff.modifyingTx() == txnum)
          buff.flush();
    }
+
+   /**
+    * Flushes the dirty buffers, not depending by modifying transaction
+    */
+   public synchronized void flushAll() {
+      for (Buffer buff : bufferpool)
+         buff.flush();
+   }
    
    
    /**
@@ -166,13 +174,16 @@ public class BufferMgr {
    }
 
    private Buffer lru() {
-      Buffer choosen = Arrays.asList(this.bufferpool).stream()
-              .filter(buff -> !buff.isPinned())
-              .min(Comparator.comparing(buff -> (DateUtils.max(buff.getLoadTime(), buff.getUnpinTime())!=null?
-                      DateUtils.max(buff.getLoadTime(), buff.getUnpinTime()):new Date(0) )))
-              .orElse(null);
+      for(Buffer buffer : this.bufferpool) {
+         if (buffer.getLoadTime() == null && Boolean.FALSE.equals(buffer.isPinned())) {
+            return buffer;
+         }
+      }
 
-      return choosen;
+      return Arrays.stream(this.bufferpool)
+              .filter(buff -> Boolean.FALSE.equals(buff.isPinned()))
+              .min(Comparator.comparing(Buffer::getUnpinTime))
+              .orElse(null);
    }
 
    private Buffer clock() {

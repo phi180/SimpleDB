@@ -104,8 +104,10 @@ public class Buffer {
     * Decrease the buffer's pin count.
     */
    void unpin() {
-      this.unpinTime = new Date();
       pins--;
+
+      if(!isPinned())
+         this.unpinTime = new Date();
    }
 
    public Date getLoadTime() {
