@@ -2,8 +2,9 @@ package simpledb.buffer;
 
 import simpledb.file.*;
 import simpledb.log.LogMgr;
+import simpledb.util.DateUtils;
 
-import java.util.Date;
+import java.util.*;
 
 /**
  * Manages the pinning and unpinning of buffers to blocks.
@@ -30,6 +31,11 @@ public class BufferMgr {
       numAvailable = numbuffs;
       for (int i=0; i<numbuffs; i++)
          bufferpool[i] = new Buffer(fm, lm);
+   }
+
+   public BufferMgr(FileMgr fm, LogMgr lm, int numbuffs, ReplacementStrategy replacementStrategy) {
+      this(fm, lm, numbuffs);
+      this.replacementStrategy = replacementStrategy;
    }
    
    /**
@@ -145,69 +151,53 @@ public class BufferMgr {
             this.lastReplacedBufferIndex = i;
             return buff;
          }
-         i++;
+         i = i+1;
       }
       return null;
    }
 
    private Buffer fifo() {
-      Date minimumTime = null;
-      int buffIndex = -1;
+      Buffer choosen = Arrays.asList(this.bufferpool).stream()
+              .filter(buff -> !buff.isPinned())
+              .min(Comparator.comparing(buff -> buff.getLoadTime()!=null?buff.getLoadTime():new Date(0)))
+              .orElse(null);
 
-      int i = 0;
-      for (Buffer buff : bufferpool) {
-         if (!buff.isPinned()) {
-            if (minimumTime == null || buff.getLoadTime().compareTo(minimumTime) < 0) {
-               minimumTime = buff.getLoadTime();
-               buffIndex = i;
-            }
-         }
-         i++;
-      }
-
-      if(buffIndex != -1) {
-         this.lastReplacedBufferIndex = i;
-         return bufferpool[buffIndex];
-      }
-
-      return null;
+      return choosen;
    }
 
    private Buffer lru() {
-      Date minimumTime = null;
-      int buffIndex = -1;
+      Buffer choosen = Arrays.asList(this.bufferpool).stream()
+              .filter(buff -> !buff.isPinned())
+              .min(Comparator.comparing(buff -> (DateUtils.max(buff.getLoadTime(), buff.getUnpinTime())!=null?
+                      DateUtils.max(buff.getLoadTime(), buff.getUnpinTime()):new Date(0) )))
+              .orElse(null);
 
-      int i = 0;
-      for (Buffer buff : bufferpool) {
-         if (!buff.isPinned()) {
-            if (minimumTime == null || buff.getLoadTime().compareTo(minimumTime) < 0 || buff.getUnpinTime().compareTo(minimumTime) < 0) {
-               minimumTime = buff.getLoadTime().compareTo(buff.getUnpinTime()) < 0 ? buff.getLoadTime() : buff.getUnpinTime();
-               buffIndex = i;
-            }
-         }
-         i++;
-      }
-
-      if(buffIndex != -1) {
-         this.lastReplacedBufferIndex = i;
-         return bufferpool[buffIndex];
-      }
-
-      return null;
+      return choosen;
    }
 
    private Buffer clock() {
       int numBuffs = this.bufferpool.length;
-      int index = this.lastReplacedBufferIndex + 1;
+      int index = (this.lastReplacedBufferIndex + 1)%numBuffs;
 
       while(index != this.lastReplacedBufferIndex) {
          Buffer buff = this.bufferpool[index];
          if (!buff.isPinned()) {
+            this.lastReplacedBufferIndex = index;
             return buff;
          }
          index = (index+1)%numBuffs;
       }
       return null;
+   }
+
+   public String buffersInfo() {
+      StringBuilder sb = new StringBuilder();
+      int i = 0;
+      for(Buffer buffer: bufferpool) {
+         sb.append("Buffer " + i + "= " + buffer.toString());
+         i++;
+      }
+      return sb.toString();
    }
 
 }
