@@ -97,6 +97,7 @@ public class Buffer {
     * Increase the buffer's pin count.
     */
    void pin() {
+      this.unpinTime = null;
       pins++;
    }
 
