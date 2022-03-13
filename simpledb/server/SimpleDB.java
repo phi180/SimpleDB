@@ -1,6 +1,8 @@
 package simpledb.server;
 
 import java.io.File;
+
+import simpledb.buffer.ReplacementStrategy;
 import simpledb.file.FileMgr;
 import simpledb.log.LogMgr;
 import simpledb.buffer.BufferMgr;
@@ -37,6 +39,20 @@ public class SimpleDB {
       fm = new FileMgr(dbDirectory, blocksize);
       lm = new LogMgr(fm, LOG_FILE);
       bm = new BufferMgr(fm, lm, buffsize); 
+   }
+
+   /**
+    * A constructor useful for debugging.
+    * @param dirname the name of the database directory
+    * @param blocksize the block size
+    * @param buffsize the number of buffers
+    * @param replacementStrategy the replacement policy strategy
+    */
+   public SimpleDB(String dirname, int blocksize, int buffsize, ReplacementStrategy replacementStrategy) {
+      File dbDirectory = new File(dirname);
+      fm = new FileMgr(dbDirectory, blocksize);
+      lm = new LogMgr(fm, LOG_FILE);
+      bm = new BufferMgr(fm, lm, buffsize,replacementStrategy);
    }
    
    /**

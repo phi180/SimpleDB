@@ -9,6 +9,8 @@ public class FileMgr {
    private boolean isNew;
    private Map<String,RandomAccessFile> openFiles = new HashMap<>();
 
+   private BlockStats blockStats;
+
    public FileMgr(File dbDirectory, int blocksize) {
       this.dbDirectory = dbDirectory;
       this.blocksize = blocksize;
@@ -22,6 +24,8 @@ public class FileMgr {
       for (String filename : dbDirectory.list())
          if (filename.startsWith("temp"))
          		new File(dbDirectory, filename).delete();
+
+      this.blockStats = new BlockStats();
    }
 
    public synchronized void read(BlockId blk, Page p) {
@@ -87,5 +91,13 @@ public class FileMgr {
          openFiles.put(filename, f);
       }
       return f;
+   }
+
+   public BlockStats getBlockStats() {
+      return this.blockStats;
+   }
+
+   public void resetBlockStats() {
+      this.blockStats.reset();
    }
 }

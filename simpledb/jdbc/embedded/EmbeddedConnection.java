@@ -47,6 +47,8 @@ class EmbeddedConnection extends ConnectionAdapter {
    public void commit() throws SQLException {
       currentTx.commit();
       currentTx = db.newTx();
+
+      System.out.println(db.fileMgr().getBlockStats().toString());
    }
 
    /**

@@ -2,6 +2,9 @@ package simpledb.buffer;
 
 import simpledb.file.*;
 import simpledb.log.LogMgr;
+import simpledb.util.DateUtils;
+
+import java.util.*;
 
 /**
  * Manages the pinning and unpinning of buffers to blocks.
@@ -12,6 +15,9 @@ public class BufferMgr {
    private Buffer[] bufferpool;
    private int numAvailable;
    private static final long MAX_TIME = 10000; // 10 seconds
+
+   private ReplacementStrategy replacementStrategy = ReplacementStrategy.NAIF;
+   private int lastReplacedBufferIndex = -1;
    
    /**
     * Creates a buffer manager having the specified number 
@@ -25,6 +31,11 @@ public class BufferMgr {
       numAvailable = numbuffs;
       for (int i=0; i<numbuffs; i++)
          bufferpool[i] = new Buffer(fm, lm);
+   }
+
+   public BufferMgr(FileMgr fm, LogMgr lm, int numbuffs, ReplacementStrategy replacementStrategy) {
+      this(fm, lm, numbuffs);
+      this.replacementStrategy = replacementStrategy;
    }
    
    /**
@@ -42,6 +53,14 @@ public class BufferMgr {
    public synchronized void flushAll(int txnum) {
       for (Buffer buff : bufferpool)
          if (buff.modifyingTx() == txnum)
+         buff.flush();
+   }
+
+   /**
+    * Flushes the dirty buffers, not depending by modifying transaction
+    */
+   public synchronized void flushAll() {
+      for (Buffer buff : bufferpool)
          buff.flush();
    }
    
@@ -110,7 +129,7 @@ public class BufferMgr {
       buff.pin();
       return buff;
    }
-   
+
    private Buffer findExistingBuffer(BlockId blk) {
       for (Buffer buff : bufferpool) {
          BlockId b = buff.block();
@@ -121,9 +140,75 @@ public class BufferMgr {
    }
    
    private Buffer chooseUnpinnedBuffer() {
-      for (Buffer buff : bufferpool)
-         if (!buff.isPinned())
-         return buff;
+      if(replacementStrategy.equals(ReplacementStrategy.NAIF))
+         return naif();
+      else if(replacementStrategy.equals(ReplacementStrategy.CLOCK))
+         return clock();
+      else if(replacementStrategy.equals(ReplacementStrategy.FIFO))
+         return fifo();
+      else if(replacementStrategy.equals(ReplacementStrategy.LRU))
+         return lru();
+
+      throw new RuntimeException("Invalid replacement strategy");
+   }
+
+   private Buffer naif() {
+      int i = 0;
+      for (Buffer buff : bufferpool) {
+         if (!buff.isPinned()) {
+            this.lastReplacedBufferIndex = i;
+            return buff;
+         }
+         i = i+1;
+      }
       return null;
    }
+
+   private Buffer fifo() {
+      Buffer choosen = Arrays.asList(this.bufferpool).stream()
+              .filter(buff -> !buff.isPinned())
+              .min(Comparator.comparing(buff -> buff.getLoadTime()!=null?buff.getLoadTime():new Date(0)))
+              .orElse(null);
+
+      return choosen;
+   }
+
+   private Buffer lru() {
+      for(Buffer buffer : this.bufferpool) {
+         if (buffer.getLoadTime() == null && Boolean.FALSE.equals(buffer.isPinned())) {
+            return buffer;
+         }
+      }
+
+      return Arrays.stream(this.bufferpool)
+              .filter(buff -> Boolean.FALSE.equals(buff.isPinned()))
+              .min(Comparator.comparing(Buffer::getUnpinTime))
+              .orElse(null);
+   }
+
+   private Buffer clock() {
+      int numBuffs = this.bufferpool.length;
+      int index = (this.lastReplacedBufferIndex + 1)%numBuffs;
+
+      while(index != this.lastReplacedBufferIndex) {
+         Buffer buff = this.bufferpool[index];
+         if (!buff.isPinned()) {
+            this.lastReplacedBufferIndex = index;
+            return buff;
+         }
+         index = (index+1)%numBuffs;
+      }
+      return null;
+   }
+
+   public String buffersInfo() {
+      StringBuilder sb = new StringBuilder();
+      int i = 0;
+      for(Buffer buffer: bufferpool) {
+         sb.append("Buffer " + i + "= " + buffer.toString());
+         i++;
+      }
+      return sb.toString();
+   }
+
 }
