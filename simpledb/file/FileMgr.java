@@ -33,6 +33,7 @@ public class FileMgr {
          RandomAccessFile f = getFile(blk.fileName());
          f.seek(blk.number() * blocksize);
          f.getChannel().read(p.contents());
+
       }
       catch (IOException e) {
          throw new RuntimeException("cannot read block " + blk);
@@ -44,6 +45,7 @@ public class FileMgr {
          RandomAccessFile f = getFile(blk.fileName());
          f.seek(blk.number() * blocksize);
          f.getChannel().write(p.contents());
+
       }
       catch (IOException e) {
          throw new RuntimeException("cannot write block" + blk);

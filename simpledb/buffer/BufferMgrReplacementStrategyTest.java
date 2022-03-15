@@ -5,7 +5,7 @@ import simpledb.server.SimpleDB;
 
 public class BufferMgrReplacementStrategyTest {
 
-    private static final ReplacementStrategy REPLACEMENT_STRATEGY = ReplacementStrategy.LRU;
+    private static final ReplacementStrategy REPLACEMENT_STRATEGY = ReplacementStrategy.CLOCK;
 
     public static void main(String[] args) throws Exception {
         SimpleDB db = new SimpleDB("buffermgrtest", 400, 4, REPLACEMENT_STRATEGY); // only 4 buffers
@@ -18,13 +18,17 @@ public class BufferMgrReplacementStrategyTest {
         Buffer b60 = null;
         Buffer b40 = null;
 
+        // fare con i setter, senza reverse engineering per riprodurre stato iniziale
+        // stampare letture e scritture filemgr
+        // come implementare il modified?
+
         b70 = bm.pin(new BlockId("testfile", 70)); // ist1
         b40 = bm.pin(new BlockId("testfile", 40)); // ist2 -> to unpin in ist 5
         b35 = bm.pin(new BlockId("testfile", 35)); // ist3
         b70.setModified(1, 1); // ist 4
         bm.unpin(b40); // ist 5
 
-        if(REPLACEMENT_STRATEGY.equals(ReplacementStrategy.LRU)) {
+        if(REPLACEMENT_STRATEGY.equals(ReplacementStrategy.LRU) || REPLACEMENT_STRATEGY.equals(ReplacementStrategy.CLOCK)) {
             Buffer t = bm.pin(new BlockId("testfile", 99)); // ist6
             bm.unpin(t);
         }
@@ -53,8 +57,6 @@ public class BufferMgrReplacementStrategyTest {
         bm.unpin(b70);
 
         System.out.println("Buffers content: " + bm.buffersInfo());
-
-
 
     }
 

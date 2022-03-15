@@ -4,7 +4,6 @@ import simpledb.file.*;
 import simpledb.log.LogMgr;
 
 import java.util.Date;
-import java.util.Objects;
 
 /**
  * An individual buffer. A databuffer wraps a page 
