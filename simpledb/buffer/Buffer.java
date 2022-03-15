@@ -111,6 +111,10 @@ public class Buffer {
          this.unpinTime = SimpleTimer.getInstant();
    }
 
+   public boolean isModified() {
+      return this.txnum>=0;
+   }
+
    public Long getLoadTime() {
       return this.loadTime;
    }
@@ -124,10 +128,9 @@ public class Buffer {
       return "Buffer{" +
               "blk=" + blk +
               ", pins=" + pins +
-              ", txnum=" + txnum +
-              ", lsn=" + lsn +
               ", loadTime=" + loadTime +
               ", unpinTime=" + unpinTime +
+              ", dirty=" + this.isModified() +
               '}';
    }
 }
