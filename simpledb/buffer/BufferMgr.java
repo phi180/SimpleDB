@@ -167,7 +167,7 @@ public class BufferMgr {
    private Buffer fifo() {
       Buffer choosen = Arrays.asList(this.bufferpool).stream()
               .filter(buff -> !buff.isPinned())
-              .min(Comparator.comparing(buff -> buff.getLoadTime()!=null?buff.getLoadTime():new Date(0)))
+              .min(Comparator.comparing(buff -> buff.getLoadTime()!=null?buff.getLoadTime():-1L))
               .orElse(null);
 
       return choosen;

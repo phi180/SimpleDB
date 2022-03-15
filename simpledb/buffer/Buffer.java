@@ -2,6 +2,7 @@ package simpledb.buffer;
 
 import simpledb.file.*;
 import simpledb.log.LogMgr;
+import simpledb.util.SimpleTimer;
 
 import java.util.Date;
 
@@ -23,8 +24,8 @@ public class Buffer {
    private int txnum = -1;
    private int lsn = -1;
 
-   private Date loadTime;
-   private Date unpinTime;
+   private Long loadTime;
+   private Long unpinTime;
 
    public Buffer(FileMgr fm, LogMgr lm) {
       this.fm = fm;
@@ -78,7 +79,7 @@ public class Buffer {
       pins = 0;
 
       this.unpinTime = null;
-      this.loadTime = new Date();
+      this.loadTime = SimpleTimer.getInstant();
    }
    
    /**
@@ -107,14 +108,14 @@ public class Buffer {
       pins--;
 
       if(!isPinned())
-         this.unpinTime = new Date();
+         this.unpinTime = SimpleTimer.getInstant();
    }
 
-   public Date getLoadTime() {
+   public Long getLoadTime() {
       return this.loadTime;
    }
 
-   public Date getUnpinTime() {
+   public Long getUnpinTime() {
       return this.unpinTime;
    }
 
