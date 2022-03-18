@@ -50,6 +50,7 @@ public class Buffer {
       this.txnum = txnum;
       if (lsn >= 0)
          this.lsn = lsn;
+      SimpleTimer.getInstant();
    }
 
    /**
@@ -78,7 +79,6 @@ public class Buffer {
       fm.read(blk, contents);
       pins = 0;
 
-      this.unpinTime = null;
       this.loadTime = SimpleTimer.getInstant();
    }
    
@@ -111,6 +111,10 @@ public class Buffer {
          this.unpinTime = SimpleTimer.getInstant();
    }
 
+   public void setPins(int pins) {
+      this.pins = pins;
+   }
+
    public boolean isModified() {
       return this.txnum>=0;
    }
@@ -121,6 +125,14 @@ public class Buffer {
 
    public Long getUnpinTime() {
       return this.unpinTime;
+   }
+
+   public void setLoadTime(Long loadTime) {
+      this.loadTime = loadTime;
+   }
+
+   public void setUnpinTime(Long unpinTime) {
+      this.unpinTime = unpinTime;
    }
 
    @Override
