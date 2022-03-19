@@ -12,11 +12,11 @@ public class BufferMgrReplacementStrategyTest {
     private static final Integer BLOCK_SIZE = 400;
 
     public static void main(String[] args) throws Exception {
-        mar21Exam();
+        mar12Exam();
 
     }
 
-    private static BufferMgr mar21Exam() {
+    private static BufferMgr mar12Exam() {
         SimpleDB db = new SimpleDB(DIR_NAME, BLOCK_SIZE, BUFF_SIZE, REPLACEMENT_STRATEGY);
         BufferMgr bm = db.bufferMgr();
 

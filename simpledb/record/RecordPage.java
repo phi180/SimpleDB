@@ -89,6 +89,7 @@ public class RecordPage {
       }
    }
 
+   /** va a cercare lo slot utilizzato (cioè non eliminato) nella record page */
    public int nextAfter(int slot) {
       return searchAfter(slot, USED);
    }
@@ -131,7 +132,6 @@ public class RecordPage {
       return slot * layout.slotSize();
    }
 }
-
 
 
 
