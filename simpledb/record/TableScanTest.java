@@ -1,14 +1,92 @@
 package simpledb.record;
 
+import simpledb.buffer.ReplacementStrategy;
 import simpledb.server.SimpleDB;
 import simpledb.tx.Transaction;
 
+import java.util.Set;
+import java.util.TreeSet;
+import java.util.UUID;
+
 public class TableScanTest {
    public static void main(String[] args) throws Exception {
+      //mar15();
       exercise3();
    }
 
    private static void exercise3() {
+      SimpleDB db = new SimpleDB("tabletest", 2000, 5000, ReplacementStrategy.NAIF);
+      Transaction tx = db.newTx();
+
+      Schema sch = new Schema();
+      sch.addIntField("A");
+      sch.addStringField("B", 12);
+      Layout layout = new Layout(sch);
+      for (String fldname : layout.schema().fields()) {
+         int offset = layout.offset(fldname);
+         System.out.println(fldname + " has offset " + offset);
+      }
+
+      TableScan ts = new TableScan(tx, "T", layout);
+
+      db.fileMgr().getBlockStats().reset();
+
+      System.out.println("Filling the table with 100'000 random records. Current block = " + ts.getRid().blockNumber());
+      for (int i=0; i<100000;  i++) {
+         ts.insert();
+         ts.setInt("A", i);
+         ts.setString("B", UUID.randomUUID().toString().substring(0,12));
+      }
+
+      RID insert1 = ts.getRid();
+      System.out.println(db.fileMgr().getBlockStats());
+
+      System.out.println("Deleting these records, whose A-values are less than 20'000.");
+      ts.beforeFirst();
+      int countDeleted = 0;
+      while (ts.next()) {
+         int a = ts.getInt("A");
+         if (a<20000) {
+            countDeleted++;
+            //ts.delete();
+         }
+      }
+
+      System.out.println("Deleted blocks = "+ countDeleted);
+
+      ts.beforeFirst();
+      db.fileMgr().getBlockStats().reset();
+      System.out.println("Inserting 10'000 records with 0 <= A <= 100");
+      for (int i=0; i<10000;  i++) {
+         ts.insert();
+         ts.setInt("A", (int) Math.round(Math.random() * 100));
+         ts.setString("B", UUID.randomUUID().toString().substring(0,12));
+      }
+
+      RID insert2 = ts.getRid();
+      System.out.println(db.fileMgr().getBlockStats());
+
+      Set<Integer> randomNumbers = new TreeSet<>();
+      for(int i = 0;i<500;i++) {
+         randomNumbers.add((int) Math.round(Math.random() * 1000));
+      }
+
+      ts.beforeFirst();
+      db.fileMgr().getBlockStats().reset();
+      int count = 0;
+      while (ts.next()) {
+         int a = ts.getInt("A");
+         if (randomNumbers.contains(a)) {
+            count++;
+         }
+      }
+
+      System.out.println(count + " set elements are stored in the table");
+      System.out.println(db.fileMgr().getBlockStats());
+
+   }
+
+   private static void mar15() {
       SimpleDB db = new SimpleDB("tabletest", 2000, 60);
       Transaction tx = db.newTx();
 

@@ -9,7 +9,7 @@ public class FileMgr {
    private boolean isNew;
    private Map<String,RandomAccessFile> openFiles = new HashMap<>();
 
-   private final Boolean PRINT_STATS = true;
+   private final Boolean PRINT_STATS = false;
    private BlockStats blockStats;
 
    public FileMgr(File dbDirectory, int blocksize) {
@@ -63,7 +63,7 @@ public class FileMgr {
          RandomAccessFile f = getFile(blk.fileName());
          f.seek(blk.number() * blocksize);
          f.write(b);
-         blockStats.logWrittenBlock(blk);
+         //blockStats.logWrittenBlock(blk);
          printStats();
       }
       catch (IOException e) {
