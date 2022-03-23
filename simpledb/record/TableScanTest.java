@@ -27,10 +27,8 @@ public class TableScanTest {
          System.out.println(fldname + " has offset " + offset);
       }
 
-      TableScan ts = new TableScan(tx, "T", layout);
-
       db.fileMgr().getBlockStats().reset();
-
+      TableScan ts = new TableScan(tx, "T", layout);
       System.out.println("Filling the table with 100'000 random records. Current block = " + ts.getRid().blockNumber());
       for (int i=0; i<100000;  i++) {
          ts.insert();
@@ -42,20 +40,22 @@ public class TableScanTest {
       System.out.println(db.fileMgr().getBlockStats());
 
       System.out.println("Deleting these records, whose A-values are less than 20'000.");
+      db.fileMgr().getBlockStats().reset();
       ts.beforeFirst();
       int countDeleted = 0;
       while (ts.next()) {
          int a = ts.getInt("A");
-         if (a<20000) {
+         if (a<=20000) {
             countDeleted++;
-            //ts.delete();
+            ts.delete();
          }
       }
 
+      System.out.println(db.fileMgr().getBlockStats());
       System.out.println("Deleted blocks = "+ countDeleted);
 
-      ts.beforeFirst();
       db.fileMgr().getBlockStats().reset();
+      ts.beforeFirst();
       System.out.println("Inserting 10'000 records with 0 <= A <= 100");
       for (int i=0; i<10000;  i++) {
          ts.insert();
@@ -71,8 +71,8 @@ public class TableScanTest {
          randomNumbers.add((int) Math.round(Math.random() * 1000));
       }
 
-      ts.beforeFirst();
       db.fileMgr().getBlockStats().reset();
+      ts.beforeFirst();
       int count = 0;
       while (ts.next()) {
          int a = ts.getInt("A");

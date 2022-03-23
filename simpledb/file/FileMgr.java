@@ -63,7 +63,6 @@ public class FileMgr {
          RandomAccessFile f = getFile(blk.fileName());
          f.seek(blk.number() * blocksize);
          f.write(b);
-         //blockStats.logWrittenBlock(blk);
          printStats();
       }
       catch (IOException e) {
