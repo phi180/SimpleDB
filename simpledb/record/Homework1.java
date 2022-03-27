@@ -1,7 +1,9 @@
 package simpledb.record;
 
+import simpledb.buffer.ReplacementStrategy;
 import simpledb.server.SimpleDB;
 import simpledb.tx.Transaction;
+import simpledb.util.FileUtil;
 
 import java.nio.charset.Charset;
 import java.sql.Types;
@@ -9,11 +11,21 @@ import java.util.Random;
 
 public class Homework1 {
     public static void main(String[] args) throws Exception {
-        operationAFirstNaive(new SimpleDB("tabletest", 100, 100));
+        FileUtil.deleteFolder("tabletest");
+        //operation(new SimpleDB("tabletest", 100, 100));
+
+        FileUtil.deleteFolder("tabletest");
+        //operation(new SimpleDB("tabletest", 1000, 100));
+
+        FileUtil.deleteFolder("tabletest");
+        //operation(new SimpleDB("tabletest", 1000, 250, ReplacementStrategy.LRU));
+
+        FileUtil.deleteFolder("tabletest");
+        operation(new SimpleDB("tabletest", 500, 10000, ReplacementStrategy.LRU));
     }
 
-    private static void operationAFirstNaive(SimpleDB simpleDBNaive1){
-        SimpleDB db = simpleDBNaive1;
+    private static void operation(SimpleDB sdb){
+        SimpleDB db = sdb;
         Transaction tx = db.newTx();
 
         /*-----------------*
@@ -32,6 +44,8 @@ public class Homework1 {
          *-------------------*/
         byte[] array = new byte[15]; // length is bounded by 15
         TableScan ts1 = new TableScan(tx, "R", layout1);
+        db.fileMgr().resetBlockStats();
+        ts1.beforeFirst();
         System.out.println("Filling the table with 100'000 random records. Current block = " + ts1.getRid().blockNumber());
         for (int i=0; i<100000;  i++) {
             ts1.insert();
@@ -42,8 +56,7 @@ public class Homework1 {
         }
 
         RID insertion1Rid = ts1.getRid();
-
-
+        System.out.println("First insertions: " + db.fileMgr().getBlockStats());
 
         /*-------------------*
          * Seconda relazione *
@@ -61,7 +74,9 @@ public class Homework1 {
          * Secondi inserimenti *
          *---------------------*/
         TableScan ts2 = new TableScan(tx, "S", layout2);
-        for (int i=1; i<=80000; i++) {
+        db.fileMgr().resetBlockStats();
+        ts2.beforeFirst();
+        for (int i=0; i<80000; i++) {
             ts2.insert();
             ts2.setInt("D", i);
             ts2.setInt("C", i%50);
@@ -69,12 +84,18 @@ public class Homework1 {
         }
 
         RID insertion2Rid = ts2.getRid();
+        System.out.println("Second insertions: " + db.fileMgr().getBlockStats());
+        // è 15999 e non 16000 esatto perché la pagina viene riempita, ma non si passa alla successiva
+        // quindi i dati restano in memoria primaria
 
         /*-------------------*
          * Prima lettura - R *
          *-------------------*/
         db.fileMgr().resetBlockStats();
         ts1.beforeFirst();
+        // un solo blocco scritto, questo perché dal tablescan ts1 precedente il puntatore era
+        // rimasto bloccato sull'ultimo blocco, con il beforefirst scrive l'ultimo blocco
+        // in mem secondaria e poi si riposiziona su primo blocco
         int sum = 0;
         while (ts1.next()) {
             int fieldValue = ts1.getInt("A");
@@ -82,9 +103,8 @@ public class Homework1 {
                 sum++;
             }
         }
-        System.out.println("Read from R (1), sum: { " + sum + "}\tstats: {" + db.fileMgr().getBlockStats() + "}\n\n");
+        System.out.println("Read from R (1), sum: { " + sum + "}\tstats: {" + db.fileMgr().getBlockStats() + "}");
         RID read1Rid = ts1.getRid();
-
 
         /*---------------------*
          * Seconda lettura - R *
@@ -98,7 +118,7 @@ public class Homework1 {
                 sum++;
             }
         }
-        System.out.println("Read from R (2), sum: { " + sum + "}\tstats: {" + db.fileMgr().getBlockStats() + "}\n\n");
+        System.out.println("Read from R (2), sum: { " + sum + "}\tstats: {" + db.fileMgr().getBlockStats() + "}");
         RID read2Rid = ts1.getRid();
 
         /*-------------------*
@@ -113,13 +133,13 @@ public class Homework1 {
                 sum++;
             }
         }
-        System.out.println("Read from R (3), sum: { " + sum + "}\tstats: {" + db.fileMgr().getBlockStats() + "}\n\n");
+        System.out.println("Read from R (3), sum: { " + sum + "}\tstats: {" + db.fileMgr().getBlockStats() + "}");
         RID read3Rid = ts1.getRid();
 
         /*--------------------*
          * Quarta lettura - S *
          *--------------------*/
-        db.fileMgr().resetBlockStats();
+        /*db.fileMgr().resetBlockStats();
         ts2.beforeFirst();
         sum = 0;
         try {
@@ -129,10 +149,10 @@ public class Homework1 {
                     sum++;
                 }
             }
-            System.out.println("Read from S (1), sum: { " + sum + "}\tstats: {" + db.fileMgr().getBlockStats() + "}\n\n");
+            System.out.println("Read from S (1), sum: { " + sum + "}\tstats: {" + db.fileMgr().getBlockStats() + "}");
         } catch (Exception e){
             System.out.println("ERROR - 'A' is a field of relation 'S': " + ts2.hasField("A"));
-        }
+        }*/
         RID read4Rid = ts2.getRid();
 
 
@@ -147,18 +167,12 @@ public class Homework1 {
                 sum++;
             }
         }
-        System.out.println("Count from S, sum: { " + sum + "}\tstats: {" + db.fileMgr().getBlockStats() + "}\n\n");
+        System.out.println("Count from S, sum: { " + sum + "}\tstats: {" + db.fileMgr().getBlockStats() + "}");
         RID count1Rid = ts2.getRid();
+        // 1 scrittura = perché viene inserito in memoria secondaria l'ultimo blocco che non era stato
+        // trascritto, poi letti 16000 perché oltre ai 15999 si agggiunge il blocco scritto
 
-        /*--------*
-         * Output *
-         *--------*/
-        System.out.println("First insertions: blocks="+insertion1Rid.blockNumber());
-        System.out.println("Second insertions: blocks="+insertion2Rid.blockNumber());
-        System.out.println("First read: blocks="+read1Rid.blockNumber());
-        System.out.println("Second read: blocks="+read2Rid.blockNumber());
-        System.out.println("Third read: blocks="+read3Rid.blockNumber());
-        System.out.println("Fourth read: blocks="+read4Rid.blockNumber());
-        System.out.println("First count: blocks="+count1Rid.blockNumber());
+        ts1.close();
+        ts2.close();
     }
 }
