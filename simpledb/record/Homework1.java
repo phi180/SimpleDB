@@ -85,17 +85,12 @@ public class Homework1 {
 
         RID insertion2Rid = ts2.getRid();
         System.out.println("Second insertions: " + db.fileMgr().getBlockStats());
-        // è 15999 e non 16000 esatto perché la pagina viene riempita, ma non si passa alla successiva
-        // quindi i dati restano in memoria primaria
 
         /*-------------------*
          * Prima lettura - R *
          *-------------------*/
         db.fileMgr().resetBlockStats();
         ts1.beforeFirst();
-        // un solo blocco scritto, questo perché dal tablescan ts1 precedente il puntatore era
-        // rimasto bloccato sull'ultimo blocco, con il beforefirst scrive l'ultimo blocco
-        // in mem secondaria e poi si riposiziona su primo blocco
         int sum = 0;
         while (ts1.next()) {
             int fieldValue = ts1.getInt("A");
@@ -169,9 +164,7 @@ public class Homework1 {
         }
         System.out.println("Count from S, sum: { " + sum + "}\tstats: {" + db.fileMgr().getBlockStats() + "}");
         RID count1Rid = ts2.getRid();
-        // 1 scrittura = perché viene inserito in memoria secondaria l'ultimo blocco che non era stato
-        // trascritto, poi letti 16000 perché oltre ai 15999 si agggiunge il blocco scritto
-
+        
         ts1.close();
         ts2.close();
     }
