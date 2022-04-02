@@ -1,27 +1,33 @@
-package simpledb.record;
+package simpledb.record.homework;
 
 import simpledb.buffer.ReplacementStrategy;
+import simpledb.record.Layout;
+import simpledb.record.Schema;
+import simpledb.record.TableScan;
 import simpledb.server.SimpleDB;
 import simpledb.tx.Transaction;
 import simpledb.util.FileUtil;
 
 import java.nio.charset.Charset;
 import java.sql.Types;
+import java.util.Date;
 import java.util.Random;
 
 public class Homework1 {
+    private static Date experimentTime = new Date();
+
+    private static final Configuration CONFIGURATION = Configuration.FOUR;
+
     public static void main(String[] args) throws Exception {
         FileUtil.deleteFolder("tabletest");
-        //operation(new SimpleDB("tabletest", 100, 100));
-
-        FileUtil.deleteFolder("tabletest");
-        //operation(new SimpleDB("tabletest", 1000, 100));
-
-        FileUtil.deleteFolder("tabletest");
-        //operation(new SimpleDB("tabletest", 1000, 250, ReplacementStrategy.LRU));
-
-        FileUtil.deleteFolder("tabletest");
-        operation(new SimpleDB("tabletest", 500, 10000, ReplacementStrategy.LRU));
+        if(CONFIGURATION.equals(Configuration.ONE))
+            operation(new SimpleDB("tabletest", 100, 100));
+        if(CONFIGURATION.equals(Configuration.TWO))
+            operation(new SimpleDB("tabletest", 100, 1000));
+        if(CONFIGURATION.equals(Configuration.THREE))
+            operation(new SimpleDB("tabletest", 1000, 250, ReplacementStrategy.LRU));
+        if(CONFIGURATION.equals(Configuration.FOUR))
+            operation(new SimpleDB("tabletest", 500, 10000, ReplacementStrategy.LRU));
     }
 
     private static void operation(SimpleDB sdb){
@@ -55,7 +61,12 @@ public class Homework1 {
             ts1.setString("B", generatedString);
         }
 
-        RID insertion1Rid = ts1.getRid();
+        if(CONFIGURATION.equals(Configuration.THREE)) {
+            /* voglio forzare la scrittura dal buffer alla memoria secondaria dell'ultimo blocco scritto e ancora pinnato
+            * (valido solo nella configurazione 3)*/
+            sdb.bufferMgr().unpin(sdb.bufferMgr().findExistingBuffer("R.tbl", 2702));
+        }
+
         System.out.println("First insertions: " + db.fileMgr().getBlockStats());
 
         /*-------------------*
@@ -73,8 +84,12 @@ public class Homework1 {
         /*---------------------*
          * Secondi inserimenti *
          *---------------------*/
-        TableScan ts2 = new TableScan(tx, "S", layout2);
         db.fileMgr().resetBlockStats();
+        TableScan ts2 = new TableScan(tx, "S", layout2);
+        System.out.println("After instanciating table scan ts2: " + db.fileMgr().getBlockStats());
+
+        db.fileMgr().resetBlockStats();
+
         ts2.beforeFirst();
         for (int i=0; i<80000; i++) {
             ts2.insert();
@@ -83,8 +98,9 @@ public class Homework1 {
             ts2.setInt("E", i%100);
         }
 
-        RID insertion2Rid = ts2.getRid();
         System.out.println("Second insertions: " + db.fileMgr().getBlockStats());
+
+        logSpentTime("Insertions completed");
 
         /*-------------------*
          * Prima lettura - R *
@@ -99,7 +115,6 @@ public class Homework1 {
             }
         }
         System.out.println("Read from R (1), sum: { " + sum + "}\tstats: {" + db.fileMgr().getBlockStats() + "}");
-        RID read1Rid = ts1.getRid();
 
         /*---------------------*
          * Seconda lettura - R *
@@ -114,7 +129,6 @@ public class Homework1 {
             }
         }
         System.out.println("Read from R (2), sum: { " + sum + "}\tstats: {" + db.fileMgr().getBlockStats() + "}");
-        RID read2Rid = ts1.getRid();
 
         /*-------------------*
          * Terza lettura - R *
@@ -129,26 +143,21 @@ public class Homework1 {
             }
         }
         System.out.println("Read from R (3), sum: { " + sum + "}\tstats: {" + db.fileMgr().getBlockStats() + "}");
-        RID read3Rid = ts1.getRid();
 
         /*--------------------*
          * Quarta lettura - S *
          *--------------------*/
-        /*db.fileMgr().resetBlockStats();
+        db.fileMgr().resetBlockStats();
         ts2.beforeFirst();
         sum = 0;
-        try {
-            while (ts2.next()) {
-                int fieldValue = ts2.getInt("A");
-                if ( fieldValue >= 1 && fieldValue <= 1000) {
-                    sum++;
-                }
+        while (ts2.next()) {
+            int fieldValue = ts2.getInt("C");
+            if ( fieldValue >= 1 && fieldValue <= 1000) {
+                sum++;
             }
-            System.out.println("Read from S (1), sum: { " + sum + "}\tstats: {" + db.fileMgr().getBlockStats() + "}");
-        } catch (Exception e){
-            System.out.println("ERROR - 'A' is a field of relation 'S': " + ts2.hasField("A"));
-        }*/
-        RID read4Rid = ts2.getRid();
+        }
+        System.out.println("Read from S (1), sum: { " + sum + "}\tstats: {" + db.fileMgr().getBlockStats() + "}");
+
 
 
         /*-----------------*
@@ -163,9 +172,18 @@ public class Homework1 {
             }
         }
         System.out.println("Count from S, sum: { " + sum + "}\tstats: {" + db.fileMgr().getBlockStats() + "}");
-        RID count1Rid = ts2.getRid();
-        
+
         ts1.close();
         ts2.close();
+
+        logSpentTime("End of execution");
+    }
+
+    private static void logSpentTime(String logPrefix) {
+        Date instantNow = new Date();
+
+        Long deltaMilliSecs = instantNow.getTime() - experimentTime.getTime();
+
+        System.out.println(logPrefix + ": " + deltaMilliSecs + " (ms)");
     }
 }

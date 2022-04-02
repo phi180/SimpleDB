@@ -64,7 +64,8 @@ public class BufferMgr {
       SimpleTimer.getInstant();
 
       for (Buffer buff : bufferpool)
-         buff.flush();
+         if(buff.isModified())
+            buff.flush();
    }
    
    

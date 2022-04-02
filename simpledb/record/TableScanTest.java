@@ -5,11 +5,11 @@ import simpledb.tx.Transaction;
 
 public class TableScanTest {
    public static void main(String[] args) throws Exception {
-      exercise3();
+      original();
    }
 
    private static void exercise3() {
-      SimpleDB db = new SimpleDB("tabletest", 2000, 60);
+      SimpleDB db = new SimpleDB("tabletest", 400, 60);
       Transaction tx = db.newTx();
 
       Schema sch = new Schema();

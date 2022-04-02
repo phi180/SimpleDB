@@ -1,4 +1,4 @@
-Caso 1
+Caso 1:
 A has offset 4
 B has offset 8
 Filling the table with 100'000 random records. Current block = 0
@@ -6,28 +6,35 @@ First insertions: BlockStats{blockStats={simpledb.log=BlockStatDetails{read=0, w
 C has offset 4
 D has offset 12
 E has offset 16
+After instanciating table scan ts2: BlockStats{blockStats={S.tbl=BlockStatDetails{read=1, written=0}}}
 Second insertions: BlockStats{blockStats={simpledb.log=BlockStatDetails{read=0, written=335999}, S.tbl=BlockStatDetails{read=15999, written=15999}}}
+Insertions completed: 73599 (ms)
 Read from R (1), sum: { 1000}	stats: {BlockStats{blockStats={R.tbl=BlockStatDetails{read=33334, written=1}}}}
 Read from R (2), sum: { 1001}	stats: {BlockStats{blockStats={R.tbl=BlockStatDetails{read=33334, written=0}}}}
 Read from R (3), sum: { 100}	stats: {BlockStats{blockStats={R.tbl=BlockStatDetails{read=33334, written=0}}}}
-Count from S, sum: { 100}	stats: {BlockStats{blockStats={simpledb.log=BlockStatDetails{read=0, written=1}, S.tbl=BlockStatDetails{read=16000, written=1}}}}
+Read from S (1), sum: { 78400}	stats: {BlockStats{blockStats={simpledb.log=BlockStatDetails{read=0, written=1}, S.tbl=BlockStatDetails{read=16000, written=1}}}}
+Count from S, sum: { 100}	stats: {BlockStats{blockStats={S.tbl=BlockStatDetails{read=16000, written=0}}}}
+End of execution: 74304 (ms)
 
-
-Caso 2
+Caso 2:
 A has offset 4
 B has offset 8
 Filling the table with 100'000 random records. Current block = 0
-First insertions: BlockStats{blockStats={simpledb.log=BlockStatDetails{read=0, written=22702}, R.tbl=BlockStatDetails{read=2702, written=2702}}}
+First insertions: BlockStats{blockStats={simpledb.log=BlockStatDetails{read=0, written=333331}, R.tbl=BlockStatDetails{read=33333, written=33333}}}
 C has offset 4
 D has offset 12
 E has offset 16
-Second insertions: BlockStats{blockStats={simpledb.log=BlockStatDetails{read=0, written=22931}, S.tbl=BlockStatDetails{read=1599, written=1599}}}
-Read from R (1), sum: { 1000}	stats: {BlockStats{blockStats={R.tbl=BlockStatDetails{read=2703, written=1}}}}
-Read from R (2), sum: { 1001}	stats: {BlockStats{blockStats={R.tbl=BlockStatDetails{read=2703, written=0}}}}
-Read from R (3), sum: { 100}	stats: {BlockStats{blockStats={R.tbl=BlockStatDetails{read=2703, written=0}}}}
-Count from S, sum: { 100}	stats: {BlockStats{blockStats={simpledb.log=BlockStatDetails{read=0, written=1}, S.tbl=BlockStatDetails{read=1600, written=1}}}}
+After instanciating table scan ts2: BlockStats{blockStats={S.tbl=BlockStatDetails{read=1, written=0}}}
+Second insertions: BlockStats{blockStats={simpledb.log=BlockStatDetails{read=0, written=335999}, S.tbl=BlockStatDetails{read=15999, written=15999}}}
+Insertions completed: 81829 (ms)
+Read from R (1), sum: { 1000}	stats: {BlockStats{blockStats={R.tbl=BlockStatDetails{read=33334, written=1}}}}
+Read from R (2), sum: { 1001}	stats: {BlockStats{blockStats={R.tbl=BlockStatDetails{read=33334, written=0}}}}
+Read from R (3), sum: { 100}	stats: {BlockStats{blockStats={R.tbl=BlockStatDetails{read=33334, written=0}}}}
+Read from S (1), sum: { 78400}	stats: {BlockStats{blockStats={simpledb.log=BlockStatDetails{read=0, written=1}, S.tbl=BlockStatDetails{read=16000, written=1}}}}
+Count from S, sum: { 100}	stats: {BlockStats{blockStats={S.tbl=BlockStatDetails{read=16000, written=0}}}}
+End of execution: 84229 (ms)
 
-Caso 3
+Caso 3:
 A has offset 4
 B has offset 8
 Filling the table with 100'000 random records. Current block = 0
@@ -35,13 +42,17 @@ First insertions: BlockStats{blockStats={simpledb.log=BlockStatDetails{read=0, w
 C has offset 4
 D has offset 12
 E has offset 16
-Second insertions: BlockStats{blockStats={simpledb.log=BlockStatDetails{read=0, written=21332}, R.tbl=BlockStatDetails{read=0, written=248}, S.tbl=BlockStatDetails{read=1599, written=1351}}}
-Read from R (1), sum: { 1000}	stats: {BlockStats{blockStats={R.tbl=BlockStatDetails{read=2703, written=1}, S.tbl=BlockStatDetails{read=0, written=248}}}}
+After instanciating table scan ts2: BlockStats{blockStats={R.tbl=BlockStatDetails{read=0, written=1}, S.tbl=BlockStatDetails{read=1, written=0}}}
+Second insertions: BlockStats{blockStats={simpledb.log=BlockStatDetails{read=0, written=21332}, R.tbl=BlockStatDetails{read=0, written=249}, S.tbl=BlockStatDetails{read=1599, written=1350}}}
+Insertions completed: 6001 (ms)
+Read from R (1), sum: { 1000}	stats: {BlockStats{blockStats={R.tbl=BlockStatDetails{read=2703, written=0}, S.tbl=BlockStatDetails{read=0, written=249}}}}
 Read from R (2), sum: { 1001}	stats: {BlockStats{blockStats={R.tbl=BlockStatDetails{read=2703, written=0}}}}
 Read from R (3), sum: { 100}	stats: {BlockStats{blockStats={R.tbl=BlockStatDetails{read=2703, written=0}}}}
-Count from S, sum: { 100}	stats: {BlockStats{blockStats={simpledb.log=BlockStatDetails{read=0, written=1}, S.tbl=BlockStatDetails{read=1600, written=1}}}}
+Read from S (1), sum: { 78400}	stats: {BlockStats{blockStats={simpledb.log=BlockStatDetails{read=0, written=1}, S.tbl=BlockStatDetails{read=1600, written=1}}}}
+Count from S, sum: { 100}	stats: {BlockStats{blockStats={S.tbl=BlockStatDetails{read=1600, written=0}}}}
+End of execution: 6261 (ms)
 
-Caso 4
+Caso 4:
 A has offset 4
 B has offset 8
 Filling the table with 100'000 random records. Current block = 0
@@ -49,8 +60,12 @@ First insertions: BlockStats{blockStats={simpledb.log=BlockStatDetails{read=0, w
 C has offset 4
 D has offset 12
 E has offset 16
+After instanciating table scan ts2: BlockStats{blockStats={S.tbl=BlockStatDetails{read=1, written=0}}}
 Second insertions: BlockStats{blockStats={simpledb.log=BlockStatDetails{read=0, written=42666}, S.tbl=BlockStatDetails{read=3199, written=0}}}
+Insertions completed: 11714 (ms)
 Read from R (1), sum: { 1000}	stats: {BlockStats{blockStats={}}}
 Read from R (2), sum: { 1001}	stats: {BlockStats{blockStats={}}}
 Read from R (3), sum: { 100}	stats: {BlockStats{blockStats={}}}
+Read from S (1), sum: { 78400}	stats: {BlockStats{blockStats={}}}
 Count from S, sum: { 100}	stats: {BlockStats{blockStats={}}}
+End of execution: 12126 (ms)
