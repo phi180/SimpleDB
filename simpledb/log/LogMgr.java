@@ -2,6 +2,7 @@ package simpledb.log;
 
 import java.util.Iterator;
 import simpledb.file.*;
+import simpledb.tx.recovery.LogRecord;
 
 /**
  * The log manager, which is responsible for 
@@ -17,6 +18,11 @@ public class LogMgr {
    private BlockId currentblk;
    private int latestLSN = 0;
    private int lastSavedLSN = 0;
+
+   private int currentpos;
+   private LogIterator backwardLogIt;
+   private ForwardLogIterator forwardLogIt;
+
 
    /**
     * Creates the manager for the specified log file.
@@ -52,7 +58,14 @@ public class LogMgr {
 
    public Iterator<byte[]> iterator() {
       flush();
-      return new LogIterator(fm, currentblk);
+      this.backwardLogIt = new LogIterator(fm, currentblk);
+      return backwardLogIt;
+   }
+
+   public Iterator<byte[]> forwardIterator() {
+      flush();
+      this.forwardLogIt = new ForwardLogIterator(fm, backwardLogIt.getBlk(), backwardLogIt.getCurrentpos());
+      return forwardLogIt;
    }
 
    /**
@@ -100,5 +113,18 @@ public class LogMgr {
    private void flush() {
       fm.write(currentblk, logpage);
       lastSavedLSN = latestLSN;
+   }
+
+   public String printLog() {
+      StringBuilder sb = new StringBuilder();
+
+      ForwardLogIterator forwardLogIterator = new ForwardLogIterator(fm,new BlockId(currentblk.fileName(), 0));
+      while(forwardLogIterator.hasNext()) {
+         byte[] bytes = forwardLogIterator.next();
+         LogRecord rec = LogRecord.createLogRecord(bytes);
+         sb.append(rec.toString() + "\n");
+      }
+
+      return sb.toString();
    }
 }

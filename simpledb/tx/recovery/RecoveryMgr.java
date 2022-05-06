@@ -68,7 +68,7 @@ public class RecoveryMgr {
    public int setInt(Buffer buff, int offset, int newval) {
       int oldval = buff.contents().getInt(offset);
       BlockId blk = buff.block();
-      return SetIntRecord.writeToLog(lm, txnum, blk, offset, oldval);
+      return SetIntRecord.writeToLog(lm, txnum, blk, offset, oldval, newval);
    }
 
    /**
@@ -113,16 +113,43 @@ public class RecoveryMgr {
     */
    private void doRecover() {
       Collection<Integer> finishedTxs = new ArrayList<>();
+      Collection<Integer> committedTxs = new ArrayList<>();
+
+      boolean checkpointReached = false;
+
+      System.out.println("\n\nUNDO phase:");
+
       Iterator<byte[]> iter = lm.iterator();
-      while (iter.hasNext()) {
+      while (iter.hasNext() && !checkpointReached) {
          byte[] bytes = iter.next();
          LogRecord rec = LogRecord.createLogRecord(bytes);
          if (rec.op() == CHECKPOINT)
-            return;
+            checkpointReached = true;
+
+         if (rec.op() == COMMIT)
+            committedTxs.add(rec.txNumber());
+
          if (rec.op() == COMMIT || rec.op() == ROLLBACK)
             finishedTxs.add(rec.txNumber());
-         else if (!finishedTxs.contains(rec.txNumber()))
+         else if (!finishedTxs.contains(rec.txNumber())) {
+            System.out.println(rec.toString());
             rec.undo(tx);
+         }
       }
+
+      System.out.println("\n\nREDO phase:");
+
+      iter = lm.forwardIterator();
+      while(iter.hasNext()) {
+         byte[] bytes = iter.next();
+         LogRecord rec = LogRecord.createLogRecord(bytes);
+         if (finishedTxs.contains(rec.txNumber())) {
+            System.out.println(rec.toString());
+            rec.redo(tx);
+         }
+      }
+
+      System.out.println("\n\n");
    }
+
 }

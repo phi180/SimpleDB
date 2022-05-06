@@ -6,7 +6,8 @@ import simpledb.tx.Transaction;
 
 public class SetStringRecord implements LogRecord {
    private int txnum, offset;
-   private String val;
+   private String oldval;
+   //private String newval;
    private BlockId blk;
 
    /**
@@ -24,7 +25,9 @@ public class SetStringRecord implements LogRecord {
       int opos = bpos + Integer.BYTES;
       offset = p.getInt(opos);
       int vpos = opos + Integer.BYTES;      
-      val = p.getString(vpos);
+      oldval = p.getString(vpos);
+      //int npos = vpos + oldval.length();
+      //newval = p.getString(npos);
    }
 
    public int op() {
@@ -36,7 +39,7 @@ public class SetStringRecord implements LogRecord {
    }
 
    public String toString() {
-      return "<SETSTRING " + txnum + " " + blk + " " + offset + " " + val + ">";
+      return "<SETSTRING " + txnum + " " + blk + " " + offset + " " + oldval + ">";
    }
 
    /**
@@ -48,8 +51,14 @@ public class SetStringRecord implements LogRecord {
     */
    public void undo(Transaction tx) {
       tx.pin(blk);
-      tx.setString(blk, offset, val, false); // don't log the undo!
+      tx.setString(blk, offset, oldval, false); // don't log the undo!
       tx.unpin(blk);
+   }
+
+   public void redo(Transaction tx) {
+      /*tx.pin(blk);
+      tx.setString(blk, offset, newval, false); // don't log the redo!
+      tx.unpin(blk);*/
    }
 
    /**

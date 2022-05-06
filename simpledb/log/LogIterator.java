@@ -64,4 +64,12 @@ class LogIterator implements Iterator<byte[]> {
       boundary = p.getInt(0);
       currentpos = boundary;
    }
+
+   public int getCurrentpos() {
+      return currentpos;
+   }
+
+   public BlockId getBlk() {
+      return this.blk;
+   }
 }
