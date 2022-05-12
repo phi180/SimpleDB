@@ -34,6 +34,10 @@ public class RollbackRecord implements LogRecord {
     */
    public void undo(Transaction tx) {}
 
+   public void redo(Transaction tx) {
+
+   }
+
    public String toString() {
       return "<ROLLBACK " + txnum + ">";
    }

@@ -1,5 +1,6 @@
 package simpledb.tx.recovery;
 
+import simpledb.log.LogReader;
 import simpledb.server.SimpleDB;
 import simpledb.file.*;
 import simpledb.buffer.BufferMgr;
@@ -18,6 +19,8 @@ public class RecoveryTest {
       blk0 = new BlockId("testfile", 0);
       blk1 = new BlockId("testfile", 1);
 
+      //System.out.println(LogReader.readLogLines(db.logMgr()));
+
       if (fm.length("testfile") == 0) {
          initialize();
          modify();
@@ -25,6 +28,8 @@ public class RecoveryTest {
       else {
          recover();
       }
+
+      System.out.println(LogReader.readLogLines(db.logMgr()));
    }
 
    private static void initialize() {

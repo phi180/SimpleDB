@@ -30,6 +30,10 @@ public class CheckpointRecord implements LogRecord {
     */
    public void undo(Transaction tx) {}
 
+   public void redo(Transaction tx) {
+
+   }
+
    public String toString() {
       return "<CHECKPOINT>";
    }

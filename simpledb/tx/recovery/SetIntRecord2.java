@@ -4,15 +4,15 @@ import simpledb.file.*;
 import simpledb.log.LogMgr;
 import simpledb.tx.Transaction;
 
-public class SetIntRecord implements LogRecord {
-   private int txnum, offset, val;
+public class SetIntRecord2 implements LogRecord {
+   private int txnum, offset, val, nval;
    private BlockId blk;
 
    /**
     * Create a new setint log record.
     * @param bb the bytebuffer containing the log values
     */
-   public SetIntRecord(Page p) {
+   public SetIntRecord2(Page p) {
       int tpos = Integer.BYTES;
       txnum = p.getInt(tpos);
       int fpos = tpos + Integer.BYTES;
@@ -22,8 +22,10 @@ public class SetIntRecord implements LogRecord {
       blk = new BlockId(filename, blknum);
       int opos = bpos + Integer.BYTES;
       offset = p.getInt(opos);
-      int vpos = opos + Integer.BYTES;      
-      val = p.getInt(vpos);
+      int vpos = opos + Integer.BYTES;
+      val = p.getInt(vpos);     
+      int npos = vpos + Integer.BYTES;
+      nval = p.getInt(npos);
    }
 
    public int op() {
@@ -50,33 +52,39 @@ public class SetIntRecord implements LogRecord {
       tx.setInt(blk, offset, val, false); // don't log the undo!
       tx.unpin(blk);
    }
-
+   
    public void redo(Transaction tx) {
-
+	   tx.pin(blk);
+	   tx.setInt(blk, offset, nval, false);
+	   tx.unpin(blk);
    }
 
    /**
     * A static method to write a setInt record to the log.
     * This log record contains the SETINT operator,
     * followed by the transaction id, the filename, number,
-    * and offset of the modified block, and the previous
+    * and offset of the modified block, the previous, and the new
     * integer value at that offset.
     * @return the LSN of the last log value
     */
-   public static int writeToLog(LogMgr lm, int txnum, BlockId blk, int offset, int val) {
+   public static int writeToLog(LogMgr lm, int txnum, BlockId blk, int offset, int oldval, int newval) {
       int tpos = Integer.BYTES;
       int fpos = tpos + Integer.BYTES;
       int bpos = fpos + Page.maxLength(blk.fileName().length());
       int opos = bpos + Integer.BYTES;
       int vpos = opos + Integer.BYTES;
-      byte[] rec = new byte[vpos + Integer.BYTES];
+      int npos = vpos + Integer.BYTES;
+
+      byte[] rec = new byte[npos + Integer.BYTES];
       Page p = new Page(rec);
       p.setInt(0, SETINT);
       p.setInt(tpos, txnum);
       p.setString(fpos, blk.fileName());
       p.setInt(bpos, blk.number());
       p.setInt(opos, offset);
-      p.setInt(vpos, val);
+      p.setInt(vpos, oldval);
+      p.setInt(npos, newval);
+
       return lm.append(rec);
    }
 }
