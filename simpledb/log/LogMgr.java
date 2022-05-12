@@ -55,6 +55,11 @@ public class LogMgr {
       return new LogIterator(fm, currentblk);
    }
 
+   public Iterator<byte[]> iterator2() {
+      flush();
+      return new LogIterator2(fm, currentblk);
+   }
+
    /**
     * Appends a log record to the log buffer. 
     * The record consists of an arbitrary array of bytes. 
