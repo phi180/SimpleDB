@@ -15,7 +15,7 @@ import simpledb.tx.concurrency.ConcurrencyMgr;
 public class Transaction {
    private static int nextTxNum = 0;
    private static final int END_OF_FILE = -1;
-   private RecoveryMgr    recoveryMgr;
+   private RecoveryMgr2    recoveryMgr;
    private ConcurrencyMgr concurMgr;
    private BufferMgr bm;
    private FileMgr fm;
@@ -38,7 +38,7 @@ public class Transaction {
       this.fm = fm;
       this.bm = bm;
       txnum       = nextTxNumber();
-      recoveryMgr = new RecoveryMgr(this, txnum, lm, bm);
+      recoveryMgr = new RecoveryMgr2(this, txnum, lm, bm);
       concurMgr   = new ConcurrencyMgr();
       mybuffers = new BufferList(bm);
    }

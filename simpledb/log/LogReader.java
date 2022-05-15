@@ -5,14 +5,16 @@ import simpledb.file.FileMgr;
 import simpledb.tx.recovery.LogRecord;
 
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.Iterator;
 import java.util.List;
 
 public class LogReader {
 
-    public static List<String> readLogLines(LogMgr lm) {
+
+    public static void printLogLines(LogMgr lm) {
         List<String> logLines = new ArrayList<>();
-        Iterator<byte[]> it = lm.iteratorReader();
+        Iterator<byte[]> it = lm.iterator2();
 
         while(it.hasNext()) {
             byte[] bytes = it.next();
@@ -20,7 +22,10 @@ public class LogReader {
             logLines.add(rec.toString());
         }
 
-        return logLines;
+        Collections.reverse(logLines);
+        for(String line:logLines) {
+            System.out.println(line);
+        }
     }
 
 }

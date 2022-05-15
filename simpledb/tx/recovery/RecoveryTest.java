@@ -19,17 +19,17 @@ public class RecoveryTest {
       blk0 = new BlockId("testfile", 0);
       blk1 = new BlockId("testfile", 1);
 
-      //System.out.println(LogReader.readLogLines(db.logMgr()));
-
       if (fm.length("testfile") == 0) {
          initialize();
          modify();
       }
       else {
+         LogReader.printLogLines(db.logMgr());
          recover();
+         System.out.println("\n\n");
       }
 
-      System.out.println(LogReader.readLogLines(db.logMgr()));
+      LogReader.printLogLines(db.logMgr());
    }
 
    private static void initialize() {
@@ -96,4 +96,7 @@ public class RecoveryTest {
       System.out.print(p1.getString(30) + " ");
       System.out.println(); 
    }
+
+
+
 }

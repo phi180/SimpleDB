@@ -115,6 +115,7 @@ public class RecoveryMgr2 {
       Collection<Integer> finishedTxs = new ArrayList<>();
       LogIterator2 iter = (LogIterator2)lm.iterator2();
       /* undo phase */
+      System.out.println("\n\nUNDO PHASE");
       while (iter.hasNext()) {
          byte[] bytes = iter.next();
          LogRecord rec = LogRecord.createLogRecord(bytes);
@@ -122,15 +123,19 @@ public class RecoveryMgr2 {
             return;
          if (rec.op() == COMMIT || rec.op() == ROLLBACK)
             finishedTxs.add(rec.txNumber());
-         else if (!finishedTxs.contains(rec.txNumber()))
+         else if (!finishedTxs.contains(rec.txNumber())) {
+            System.out.println(rec.toString());
             rec.undo(tx);
+         }
       }
       
       /* redo phase */
+      System.out.println("\n\nREDO PHASE");
       while(iter.hasNextReverse()) {
     	  byte[] bytes = iter.nextReverse();
           LogRecord rec = LogRecord.createLogRecord(bytes);
           if (finishedTxs.contains(rec.txNumber())) {
+             System.out.println(rec.toString());
              rec.redo(tx);
           }
       }

@@ -39,13 +39,10 @@ public class LogIterator2 implements Iterator<byte[]> {
    }
 
    public boolean hasNextReverse() {
-	   System.out.println("Current block: " + blk.number());
+	   /*System.out.println("Current block: " + blk.number());
 	   System.out.println("Block number: " + blkCnt);
 	   System.out.println("Current position: " + currentpos);
-	   System.out.println("Boundary: " + boundary);
-	   
-	   
-	   
+	   System.out.println("Boundary: " + boundary);*/
 	   return currentpos>boundary || blk.number()<blkCnt;
    }
 
