@@ -1,5 +1,6 @@
 package simpledb.tx.recovery;
 
+import simpledb.log.LogMgr;
 import simpledb.server.SimpleDB;
 import simpledb.file.*;
 import simpledb.buffer.BufferMgr;
@@ -10,6 +11,7 @@ public class RecoveryTest {
    public static BufferMgr bm;
    private static SimpleDB db;
    private static BlockId blk0, blk1;
+   private static LogMgr lm;
 
    public static void main(String[] args) throws Exception {
       db = new SimpleDB("recoverytest", 400, 8);
@@ -17,6 +19,9 @@ public class RecoveryTest {
       bm = db.bufferMgr();
       blk0 = new BlockId("testfile", 0);
       blk1 = new BlockId("testfile", 1);
+      lm = db.logMgr();
+
+      printLog();
 
       if (fm.length("testfile") == 0) {
          initialize();
@@ -25,6 +30,8 @@ public class RecoveryTest {
       else {
          recover();
       }
+
+      printLog();
    }
 
    private static void initialize() {
@@ -66,6 +73,16 @@ public class RecoveryTest {
       printValues("After rollback:");
       // tx4 stops here without committing or rolling back,
       // so all its changes should be undone during recovery.
+
+      // Only transaction 5 in REDO
+      //CheckpointRecord.writeToLog(lm);
+
+      Transaction tx5 = db.newTx();
+      tx5.pin(blk0);
+      tx5.setInt(blk0, 0, 1000, true);
+      bm.flushAll(5);
+      tx5.commit();
+      printValues("After tx5 commit:");
    }
 
    private static void recover() {
@@ -90,5 +107,10 @@ public class RecoveryTest {
       System.out.print(p0.getString(30) + " ");
       System.out.print(p1.getString(30) + " ");
       System.out.println(); 
+   }
+
+   private static void printLog() {
+      System.out.println("Reading log content:");
+      System.out.println(lm.printLog()+"\n");
    }
 }
