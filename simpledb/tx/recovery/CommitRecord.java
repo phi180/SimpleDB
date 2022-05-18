@@ -30,6 +30,11 @@ public class CommitRecord implements LogRecord {
     */
    public void undo(Transaction tx) {}
 
+   @Override
+   public void redo(Transaction tx) {
+
+   }
+
    public String toString() {
       return "<COMMIT " + txnum + ">";
    }
