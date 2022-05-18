@@ -71,6 +71,13 @@ public class RecoveryTest {
       printValues("After rollback:");
       // tx4 stops here without committing or rolling back,
       // so all its changes should be undone during recovery.
+
+      Transaction tx5 = db.newTx();
+      tx5.pin(blk0);
+      tx5.setInt(blk0,0,1000,true);
+      bm.flushAll(5);
+      tx5.commit();
+
    }
 
    private static void recover() {

@@ -39,10 +39,6 @@ public class LogIterator2 implements Iterator<byte[]> {
    }
 
    public boolean hasNextReverse() {
-	   /*System.out.println("Current block: " + blk.number());
-	   System.out.println("Block number: " + blkCnt);
-	   System.out.println("Current position: " + currentpos);
-	   System.out.println("Boundary: " + boundary);*/
 	   return currentpos>boundary || blk.number()<blkCnt;
    }
 
@@ -66,16 +62,16 @@ public class LogIterator2 implements Iterator<byte[]> {
    
    public void rewind() {
 	   blk = new BlockId(blk.fileName(), 0);
-	   moveToBlockReverse(blk);
+	   moveToBlockForward(blk);
    }
 
 
    public byte[] nextReverse() {
       if (currentpos == boundary) {
          blk = new BlockId(blk.fileName(), blk.number()+1);
-         moveToBlockReverse(blk);
+         moveToBlockForward(blk);
       }
-      moveToPerviousRecord();
+      moveToPreviousRecord();
       byte[] rec = p.getBytes(currentpos);
       return rec;
    }
@@ -92,14 +88,14 @@ public class LogIterator2 implements Iterator<byte[]> {
    }
    
 
-   private void moveToBlockReverse(BlockId blk) {
+   private void moveToBlockForward(BlockId blk) {
       fm.read(blk, p);
       boundary = p.getInt(0);
       currentpos = fm.blockSize();
-      moveToPerviousRecord();
+      moveToPreviousRecord();
    }
    
-   private void moveToPerviousRecord() { 
+   private void moveToPreviousRecord() {
 	   int c = boundary;
 	   int len = 0;
 	   while (c<currentpos) {
