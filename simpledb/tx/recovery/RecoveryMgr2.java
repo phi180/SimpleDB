@@ -114,13 +114,15 @@ public class RecoveryMgr2 {
    private void doRecover() {
       Collection<Integer> finishedTxs = new ArrayList<>();
       LogIterator2 iter = (LogIterator2)lm.iterator2();
+      boolean undoFinished = false;
+
       /* undo phase */
       System.out.println("\n\nUNDO PHASE");
-      while (iter.hasNext()) {
+      while (iter.hasNext() && !undoFinished) {
          byte[] bytes = iter.next();
          LogRecord rec = LogRecord.createLogRecord(bytes);
          if (rec.op() == CHECKPOINT)
-            return;
+            undoFinished = true;
          if (rec.op() == COMMIT || rec.op() == ROLLBACK)
             finishedTxs.add(rec.txNumber());
          else if (!finishedTxs.contains(rec.txNumber())) {

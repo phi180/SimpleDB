@@ -71,6 +71,7 @@ public class RecoveryTest {
       printValues("After rollback:");
       // tx4 stops here without committing or rolling back,
       // so all its changes should be undone during recovery.
+      CheckpointRecord.writeToLog(db.logMgr());
 
       Transaction tx5 = db.newTx();
       tx5.pin(blk0);
