@@ -38,7 +38,7 @@ public class LogIterator2 implements Iterator<byte[]> {
       return currentpos<fm.blockSize() || blk.number()>0;
    }
 
-   public boolean hasNextReverse() {
+   public boolean hasNextForward() {
 	   return currentpos>boundary || blk.number()<blkCnt;
    }
 
@@ -66,7 +66,7 @@ public class LogIterator2 implements Iterator<byte[]> {
    }
 
 
-   public byte[] nextReverse() {
+   public byte[] nextForward() {
       if (currentpos == boundary) {
          blk = new BlockId(blk.fileName(), blk.number()+1);
          moveToBlockForward(blk);

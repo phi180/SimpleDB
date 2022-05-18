@@ -131,8 +131,8 @@ public class RecoveryMgr2 {
       
       /* redo phase */
       System.out.println("\n\nREDO PHASE");
-      while(iter.hasNextReverse()) {
-    	  byte[] bytes = iter.nextReverse();
+      while(iter.hasNextForward()) {
+    	  byte[] bytes = iter.nextForward();
           LogRecord rec = LogRecord.createLogRecord(bytes);
           if (finishedTxs.contains(rec.txNumber())) {
              System.out.println(rec.toString());
