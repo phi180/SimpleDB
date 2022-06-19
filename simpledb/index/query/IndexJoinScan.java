@@ -12,6 +12,8 @@ import simpledb.query.*;
  * the product of each LHS record with the matching RHS index records.
  * @author Edward Sciore
  */
+
+// Uses nested loop
 public class IndexJoinScan implements Scan {
    private Scan lhs;
    private Index idx;

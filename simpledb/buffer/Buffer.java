@@ -2,9 +2,9 @@ package simpledb.buffer;
 
 import simpledb.file.*;
 import simpledb.log.LogMgr;
+import simpledb.util.SimpleTimer;
 
 import java.util.Date;
-import java.util.Objects;
 
 /**
  * An individual buffer. A databuffer wraps a page 
@@ -24,8 +24,8 @@ public class Buffer {
    private int txnum = -1;
    private int lsn = -1;
 
-   private Date loadTime;
-   private Date unpinTime;
+   private Long loadTime;
+   private Long unpinTime;
 
    public Buffer(FileMgr fm, LogMgr lm) {
       this.fm = fm;
@@ -50,6 +50,7 @@ public class Buffer {
       this.txnum = txnum;
       if (lsn >= 0)
          this.lsn = lsn;
+      SimpleTimer.getInstant();
    }
 
    /**
@@ -78,8 +79,7 @@ public class Buffer {
       fm.read(blk, contents);
       pins = 0;
 
-      this.unpinTime = null;
-      this.loadTime = new Date();
+      this.loadTime = SimpleTimer.getInstant();
    }
    
    /**
@@ -108,15 +108,31 @@ public class Buffer {
       pins--;
 
       if(!isPinned())
-         this.unpinTime = new Date();
+         this.unpinTime = SimpleTimer.getInstant();
    }
 
-   public Date getLoadTime() {
+   public void setPins(int pins) {
+      this.pins = pins;
+   }
+
+   public boolean isModified() {
+      return this.txnum>=0;
+   }
+
+   public Long getLoadTime() {
       return this.loadTime;
    }
 
-   public Date getUnpinTime() {
+   public Long getUnpinTime() {
       return this.unpinTime;
+   }
+
+   public void setLoadTime(Long loadTime) {
+      this.loadTime = loadTime;
+   }
+
+   public void setUnpinTime(Long unpinTime) {
+      this.unpinTime = unpinTime;
    }
 
    @Override
@@ -124,10 +140,9 @@ public class Buffer {
       return "Buffer{" +
               "blk=" + blk +
               ", pins=" + pins +
-              ", txnum=" + txnum +
-              ", lsn=" + lsn +
               ", loadTime=" + loadTime +
               ", unpinTime=" + unpinTime +
+              ", dirty=" + this.isModified() +
               '}';
    }
 }

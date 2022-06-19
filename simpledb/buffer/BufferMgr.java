@@ -3,6 +3,7 @@ package simpledb.buffer;
 import simpledb.file.*;
 import simpledb.log.LogMgr;
 import simpledb.util.DateUtils;
+import simpledb.util.SimpleTimer;
 
 import java.util.*;
 
@@ -60,8 +61,11 @@ public class BufferMgr {
     * Flushes the dirty buffers, not depending by modifying transaction
     */
    public synchronized void flushAll() {
+      SimpleTimer.getInstant();
+
       for (Buffer buff : bufferpool)
-         buff.flush();
+         if(buff.isModified())
+            buff.flush();
    }
    
    
@@ -123,11 +127,17 @@ public class BufferMgr {
          if (buff == null)
             return null;
          buff.assignToBlock(blk);
+      } else {
+         SimpleTimer.getInstant();
       }
       if (!buff.isPinned())
          numAvailable--;
       buff.pin();
       return buff;
+   }
+
+   public Buffer findExistingBuffer(String filename, Integer blkNum) {
+      return findExistingBuffer(new BlockId(filename,blkNum));
    }
 
    private Buffer findExistingBuffer(BlockId blk) {
@@ -164,10 +174,11 @@ public class BufferMgr {
       return null;
    }
 
+   // not mandatory
    private Buffer fifo() {
       Buffer choosen = Arrays.asList(this.bufferpool).stream()
               .filter(buff -> !buff.isPinned())
-              .min(Comparator.comparing(buff -> buff.getLoadTime()!=null?buff.getLoadTime():new Date(0)))
+              .min(Comparator.comparing(buff -> buff.getLoadTime()!=null?buff.getLoadTime():-1L))
               .orElse(null);
 
       return choosen;
